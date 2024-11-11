@@ -30,6 +30,7 @@ yum install fontconfig -y
 yum install gcc-c++ -y 
 yum install python36-devel -y 
 yum groupinstall "Development Tools" -y
+yum install libxml2-devel libxslt-devel python3-devel -y 
 
 wget https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh
 bash script.rpm.sh
