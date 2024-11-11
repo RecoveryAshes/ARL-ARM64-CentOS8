@@ -24,7 +24,7 @@ yum install systemd -y
 yum install python36  git nginx  wqy-microhei-fonts unzip wget -y
 yum install fontconfig -y
 yum install gcc-c++ -y 
-yum python36-devel -y 
+yum install python36-devel -y 
 yum groupinstall "Development Tools" -y
 
 wget https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh
@@ -44,7 +44,7 @@ if [ ! -f /usr/local/bin/pip3.6 ]; then
   echo "link  pip3.6"
   ln -s /usr/bin/pip3.6  /usr/local/bin/pip3.6
   # python3.6 -m ensurepip --default-pip
-  # python3.6 -m pip install --upgrade pip
+  python3.6 -m pip install --upgrade pip
   # pip3.6 config --global set global.index-url https://mirrors.adysec.com/language/pypi
   pip3.6 --version
 fi
@@ -90,7 +90,7 @@ fi
 
 if [ ! -d "ARL-NPoC" ]; then
   echo "mv ARL-NPoC proj"
- mv ARL/tools/ARL-NPoC ARL-NPoC
+  mv ARL/tools/ARL-NPoC ARL-NPoC
 fi
 
 cd /opt/ARL-NPoC
@@ -124,6 +124,8 @@ if [ ! -f rabbitmq_user ]; then
   rabbitmqctl set_user_tags arl arltag
   rabbitmqctl set_permissions -p arlv2host arl ".*" ".*" ".*"
   echo "init arl user"
+  echo "db.user.drop()" > docker/mongo-init.js 
+  echo "db.user.insert({ username: 'admin',  password: 'fe0a9aeac7e5c03922067b40db984f0e' })" >> docker/mongo-init.js 
   mongosh 127.0.0.1:27017/arl docker/mongo-init.js
   touch rabbitmq_user
 fi
