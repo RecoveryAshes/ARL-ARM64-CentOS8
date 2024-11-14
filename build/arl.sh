@@ -1,7 +1,7 @@
 set -e
 
 echo "update aliyun repos"
-rm -rm /etc/yum.repos.d/*
+rm -rf /etc/yum.repos.d/*
 mv /opt/ARL-ARM64-CentOS8/centos8repos/* /etc/yum.repos.d/
 
 
@@ -176,8 +176,6 @@ cd /opt/ARL
 echo "gen cert ..."
 chmod +x docker/worker/gen_crt.sh
 ./docker/worker/gen_crt.sh
-
-
 
 
 if [ ! -f /etc/systemd/system/arl-web.service ]; then
