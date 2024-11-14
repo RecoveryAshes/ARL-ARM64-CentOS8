@@ -1,6 +1,11 @@
 set -e
+
+echo "update aliyun repos"
+rm -rm /etc/yum.repos.d/*
+mv /opt/ARL-ARM64-CentOS8/centos8repos/* /etc/yum.repos.d/
+
+
 echo "cd /opt/"
-mkdir -p /opt/
 cd /opt/
 
 tee /etc/resolv.conf <<"EOF"
@@ -23,7 +28,7 @@ yum clean all
 yum makecache
 yum update -y
 yum install epel-release -y
-yum install  mongodb-org-server  mongodb-mongosh -y
+yum install mongodb-org-server  mongodb-mongosh -y
 yum install systemd -y
 yum install python36  git nginx  wqy-microhei-fonts unzip wget -y
 yum install fontconfig -y
@@ -31,9 +36,10 @@ yum install gcc-c++ -y
 yum install python36-devel -y 
 yum groupinstall "Development Tools" -y
 
-wget https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh
+cd /opt/ARL-ARM64-CentOS8/build/rabbitmq
+#wget https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh
 bash script.rpm.sh
-wget https://github.com/rabbitmq/erlang-rpm/releases/download/v26.2.5.5/erlang-26.2.5.5-1.el8.aarch64.rpm
+#wget https://github.com/rabbitmq/erlang-rpm/releases/download/v26.2.5.5/erlang-26.2.5.5-1.el8.aarch64.rpm
 rpm -Uvh erlang-26.2.5.5-1.el8.aarch64.rpm
 yum install socat logrotate -y
 yum install -y rabbitmq-server
@@ -63,8 +69,9 @@ fi
 if ! command -v nuclei &> /dev/null
 then
   echo "install nuclei"
-  wget https://github.com/adysec/ARL/raw/master/tools/nuclei.zip 
-  unzip nuclei.zip && mv nuclei /usr/bin/ && rm -f nuclei.zip
+  cd /opt/ARL-ARM64-CentOS8/build/nuclei
+  mv nuclei /usr/bin/
+  chmod +x /usr/bin/nuclei
   nuclei -ut
 fi
 
@@ -74,8 +81,8 @@ if ! command -v wih &> /dev/null
 then
   echo "install wih ..."
   ## 安装 WIH
-  git clone https://github.com/Aabyss-Team/arl_files.git
-  mv /opt/arl_files/wih/wih_linux_arm64 /usr/bin/wih
+  cd /opt/ARL-ARM64-CentOS8/build/wih
+  mv wih_linux_arm64 /usr/bin/wih
   chmod +x /usr/bin/wih
   wih --version
 fi
@@ -89,15 +96,17 @@ systemctl restart rabbitmq-server
 cd /opt
 if [ ! -d ARL ]; then
   echo "git clone ARL proj"
-  git clone https://github.com/adysec/ARL.git
+  mv /opt/ARL-ARM64-CentOS8/ARL ARL
 fi
 
 if [ ! -d "ARL-NPoC" ]; then
   echo "mv ARL-NPoC proj"
-  mv ARL/tools/ARL-NPoC ARL-NPoC
+  mv /opt/ARL-ARM64-CentOS8/ARL-NPoC ARL-NPoC
 fi
+
 yum install libxml2-devel libxslt-devel -y 
 cd /opt/ARL-NPoC
+
 echo "install poc requirements ..."
 pip3.6 install -r requirements.txt
 pip3.6 install -e .
@@ -105,7 +114,7 @@ cd ../
 
 if [ ! -f /usr/local/bin/ncrack ]; then
   echo "Download ncrack ..."
-  wget https://dl.fedoraproject.org/pub/epel/8/Everything/aarch64/Packages/n/ncrack-0.7-8.el8.aarch64.rpm
+  cd /opt/ARL-ARM64-CentOS8/build
   yum localinstall ncrack-0.7-8.el8.aarch64.rpm  -y
   ncrack --version
 fi
@@ -113,12 +122,14 @@ fi
 mkdir -p /data/GeoLite2
 if [ ! -f /data/GeoLite2/GeoLite2-ASN.mmdb ]; then
   echo "download GeoLite2-ASN.mmdb ..."
-  wget -c https://github.com/adysec/ARL/raw/master/tools/GeoLite2-ASN.mmdb -O /data/GeoLite2/GeoLite2-ASN.mmdb
+  cd /opt/ARL-ARM64-CentOS8/build
+  mv GeoLite2-ASN.mmdb /data/GeoLite2
 fi
 
 if [ ! -f /data/GeoLite2/GeoLite2-City.mmdb ]; then
   echo "download GeoLite2-City.mmdb ..."
-  wget -c https://github.com/adysec/ARL/raw/master/tools/GeoLite2-City.mmdb -O /data/GeoLite2/GeoLite2-City.mmdb
+  cd /opt/ARL-ARM64-CentOS8/build
+  mv GeoLite2-City.mmdb /data/GeoLite2
 fi
 
 cd /opt/ARL
@@ -142,9 +153,10 @@ if [ ! -f app/config.yaml ]; then
   cp app/config.yaml.example  app/config.yaml
 fi
 
+##该截图展示无法使用，未编译arm架构
 if [ ! -f /usr/bin/phantomjs ]; then
   echo "install phantomjs"
-  ln -s `pwd`/app/tools/phantomjs  /usr/bin/phantomjs
+  ln -s /opt/ARL-ARM64-CentOS8/ARL/app/tools/phantomjs  /usr/bin/phantomjs
 fi
 
 if [ ! -f /etc/nginx/conf.d/arl.conf ]; then
@@ -154,17 +166,18 @@ fi
 
 if [ ! -f /etc/ssl/certs/dhparam.pem ]; then
   echo "download dhparam.pem"
-  curl https://ssl-config.mozilla.org/ffdhe2048.txt > /etc/ssl/certs/dhparam.pem
+  #curl https://ssl-config.mozilla.org/ffdhe2048.txt > /etc/ssl/certs/dhparam.pem
+  cd /opt/ARL-ARM64-CentOS8/build/ssl
+  cat ffdhe2048.txt > /etc/ssl/certs/dhparam.pem
 fi
 
 
-
+cd /opt/ARL
 echo "gen cert ..."
 chmod +x docker/worker/gen_crt.sh
 ./docker/worker/gen_crt.sh
 
 
-cd /opt/ARL/
 
 
 if [ ! -f /etc/systemd/system/arl-web.service ]; then
@@ -202,7 +215,7 @@ systemctl restart arl-worker
 systemctl restart arl-scheduler
 systemctl restart arl-worker-github
 systemctl restart nginx
-
+echo "----------------------------------------------"
 echo "install done"
 echo "默认端口0.0.0.0:5003"
 echo "默认账号:admin"
