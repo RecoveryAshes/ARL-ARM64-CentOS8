@@ -28,7 +28,10 @@ yum clean all
 yum makecache
 yum update -y
 yum install epel-release -y
+
+#过代理
 yum install mongodb-org-server  mongodb-mongosh -y
+
 yum install systemd -y
 yum install python36  git nginx  wqy-microhei-fonts unzip wget -y
 yum install fontconfig -y
@@ -140,12 +143,13 @@ if [ ! -f rabbitmq_user ]; then
   rabbitmqctl set_user_tags arl arltag
   rabbitmqctl set_permissions -p arlv2host arl ".*" ".*" ".*"
   echo "init arl user"
-  echo "db.user.drop()" > docker/mongo-init.js 
-  echo "db.user.insert({ username: 'admin',  password: 'fe0a9aeac7e5c03922067b40db984f0e' })" >> docker/mongo-init.js 
-  mongosh 127.0.0.1:27017/arl docker/mongo-init.js
+  echo "db.user.drop()" > /opt/ARL/docker/mongo-init.js 
+  echo "db.user.insert({ username: 'admin',  password: 'fe0a9aeac7e5c03922067b40db984f0e' })" >> /opt/ARL/docker/mongo-init.js  
+  mongosh 127.0.0.1:27017/arl /opt/ARL/docker/mongo-init.js 
   touch rabbitmq_user
 fi
 
+cd /opt/ARL
 echo "install arl requirements ..."
 pip3.6 install -r requirements.txt
 if [ ! -f app/config.yaml ]; then
