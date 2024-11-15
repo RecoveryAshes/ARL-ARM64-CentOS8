@@ -99,12 +99,12 @@ systemctl restart rabbitmq-server
 cd /opt
 if [ ! -d ARL ]; then
   echo "git clone ARL proj"
-  cp /opt/ARL-ARM64-CentOS8/ARL ARL
+  cp -r /opt/ARL-ARM64-CentOS8/ARL /opt/ARL
 fi
 
 if [ ! -d "ARL-NPoC" ]; then
   echo "cp  ARL-NPoC proj"
-  cp /opt/ARL-ARM64-CentOS8/ARL-NPoC ARL-NPoC
+  cp -r /opt/ARL-ARM64-CentOS8/ARL-NPoC /opt/ARL-NPoC
 fi
 
 yum install libxml2-devel libxslt-devel -y 
