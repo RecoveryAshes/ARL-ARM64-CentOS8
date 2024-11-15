@@ -2,7 +2,7 @@ set -e
 
 echo "update aliyun repos"
 rm -rf /etc/yum.repos.d/*
-mv /opt/ARL-ARM64-CentOS8/centos8repos/* /etc/yum.repos.d/
+cp /opt/ARL-ARM64-CentOS8/centos8repos/* /etc/yum.repos.d/
 
 
 echo "cd /opt/"
@@ -73,7 +73,7 @@ if ! command -v nuclei &> /dev/null
 then
   echo "install nuclei"
   cd /opt/ARL-ARM64-CentOS8/build/nuclei
-  mv nuclei /usr/bin/
+  cp nuclei /usr/bin/
   chmod +x /usr/bin/nuclei
   nuclei -ut
 fi
@@ -85,7 +85,7 @@ then
   echo "install wih ..."
   ## 安装 WIH
   cd /opt/ARL-ARM64-CentOS8/build/wih
-  mv wih_linux_arm64 /usr/bin/wih
+  cp wih_linux_arm64 /usr/bin/wih
   chmod +x /usr/bin/wih
   wih --version
 fi
@@ -99,12 +99,12 @@ systemctl restart rabbitmq-server
 cd /opt
 if [ ! -d ARL ]; then
   echo "git clone ARL proj"
-  mv /opt/ARL-ARM64-CentOS8/ARL ARL
+  cp /opt/ARL-ARM64-CentOS8/ARL ARL
 fi
 
 if [ ! -d "ARL-NPoC" ]; then
-  echo "mv ARL-NPoC proj"
-  mv /opt/ARL-ARM64-CentOS8/ARL-NPoC ARL-NPoC
+  echo "cp  ARL-NPoC proj"
+  cp /opt/ARL-ARM64-CentOS8/ARL-NPoC ARL-NPoC
 fi
 
 yum install libxml2-devel libxslt-devel -y 
@@ -126,13 +126,13 @@ mkdir -p /data/GeoLite2
 if [ ! -f /data/GeoLite2/GeoLite2-ASN.mmdb ]; then
   echo "download GeoLite2-ASN.mmdb ..."
   cd /opt/ARL-ARM64-CentOS8/build
-  mv GeoLite2-ASN.mmdb /data/GeoLite2
+  cp GeoLite2-ASN.mmdb /data/GeoLite2
 fi
 
 if [ ! -f /data/GeoLite2/GeoLite2-City.mmdb ]; then
   echo "download GeoLite2-City.mmdb ..."
   cd /opt/ARL-ARM64-CentOS8/build
-  mv GeoLite2-City.mmdb /data/GeoLite2
+  cp GeoLite2-City.mmdb /data/GeoLite2
 fi
 
 cd /opt/ARL
