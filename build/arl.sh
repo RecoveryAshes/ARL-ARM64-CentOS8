@@ -4,7 +4,6 @@ echo "update aliyun repos"
 rm -rf /etc/yum.repos.d/*
 cp /opt/ARL-ARM64-CentOS8/centos8repos/* /etc/yum.repos.d/
 
-
 echo "cd /opt/"
 cd /opt/
 
@@ -30,13 +29,13 @@ yum update -y
 yum install epel-release -y
 
 #过代理
-yum install mongodb-org-server  mongodb-mongosh -y
+yum install mongodb-org-server mongodb-mongosh -y
 
 yum install systemd -y
-yum install python36  git nginx  wqy-microhei-fonts unzip wget -y
+yum install python36 git nginx wqy-microhei-fonts unzip wget -y
 yum install fontconfig -y
-yum install gcc-c++ -y 
-yum install python36-devel -y 
+yum install gcc-c++ -y
+yum install python36-devel -y
 yum groupinstall "Development Tools" -y
 
 cd /opt/ARL-ARM64-CentOS8/build/rabbitmq
@@ -47,7 +46,6 @@ rpm -Uvh erlang-26.2.5.5-1.el8.aarch64.rpm
 yum install socat logrotate -y
 yum install -y rabbitmq-server
 
-
 if [ ! -f /usr/bin/python3.6 ]; then
   echo "link python3.6"
   ln -s /usr/bin/python36 /usr/bin/python3.6
@@ -55,22 +53,19 @@ fi
 
 if [ ! -f /usr/local/bin/pip3.6 ]; then
   echo "link  pip3.6"
-  ln -s /usr/bin/pip3.6  /usr/local/bin/pip3.6
+  ln -s /usr/bin/pip3.6 /usr/local/bin/pip3.6
   # python3.6 -m ensurepip --default-pip
   python3.6 -m pip install --upgrade pip
   # pip3.6 config --global set global.index-url https://mirrors.adysec.com/language/pypi
   pip3.6 --version
 fi
 
-
-if ! command -v nmap &> /dev/null
-then
-    echo "install nmap ..."
-    yum install nmap -y
+if ! command -v nmap &>/dev/null; then
+  echo "install nmap ..."
+  yum install nmap -y
 fi
 
-if ! command -v nuclei &> /dev/null
-then
+if ! command -v nuclei &>/dev/null; then
   echo "install nuclei"
   cd /opt/ARL-ARM64-CentOS8/build/nuclei
   cp nuclei /usr/bin/
@@ -78,10 +73,7 @@ then
   nuclei -ut
 fi
 
-
-
-if ! command -v wih &> /dev/null
-then
+if ! command -v wih &>/dev/null; then
   echo "install wih ..."
   ## 安装 WIH
   cd /opt/ARL-ARM64-CentOS8/build/wih
@@ -89,6 +81,8 @@ then
   chmod +x /usr/bin/wih
   wih --version
 fi
+
+cp /opt/ARL-ARM64-CentOS8/build/rabbitmq/advanced.config /etc/rabbitmq/
 
 echo "start services ..."
 systemctl enable mongod
@@ -107,7 +101,7 @@ if [ ! -d "ARL-NPoC" ]; then
   cp -r /opt/ARL-ARM64-CentOS8/ARL-NPoC /opt/ARL-NPoC
 fi
 
-yum install libxml2-devel libxslt-devel -y 
+yum install libxml2-devel libxslt-devel -y
 cd /opt/ARL-NPoC
 
 echo "install poc requirements ..."
@@ -118,7 +112,7 @@ cd ../
 if [ ! -f /usr/local/bin/ncrack ]; then
   echo "Download ncrack ..."
   cd /opt/ARL-ARM64-CentOS8/build
-  yum localinstall ncrack-0.7-8.el8.aarch64.rpm  -y
+  yum localinstall ncrack-0.7-8.el8.aarch64.rpm -y
   ncrack --version
 fi
 
@@ -143,9 +137,9 @@ if [ ! -f rabbitmq_user ]; then
   rabbitmqctl set_user_tags arl arltag
   rabbitmqctl set_permissions -p arlv2host arl ".*" ".*" ".*"
   echo "init arl user"
-  echo "db.user.drop()" > /opt/ARL/docker/mongo-init.js 
-  echo "db.user.insert({ username: 'admin',  password: 'fe0a9aeac7e5c03922067b40db984f0e' })" >> /opt/ARL/docker/mongo-init.js  
-  mongosh 127.0.0.1:27017/arl /opt/ARL/docker/mongo-init.js 
+  echo "db.user.drop()" >/opt/ARL/docker/mongo-init.js
+  echo "db.user.insert({ username: 'admin',  password: 'fe0a9aeac7e5c03922067b40db984f0e' })" >>/opt/ARL/docker/mongo-init.js
+  mongosh 127.0.0.1:27017/arl /opt/ARL/docker/mongo-init.js
   touch rabbitmq_user
 fi
 
@@ -154,13 +148,13 @@ echo "install arl requirements ..."
 pip3.6 install -r requirements.txt
 if [ ! -f app/config.yaml ]; then
   echo "create config.yaml"
-  cp app/config.yaml.example  app/config.yaml
+  cp app/config.yaml.example app/config.yaml
 fi
 
 ##该截图展示无法使用，未编译arm架构
 if [ ! -f /usr/bin/phantomjs ]; then
   echo "install phantomjs"
-  ln -s /opt/ARL-ARM64-CentOS8/ARL/app/tools/phantomjs  /usr/bin/phantomjs
+  ln -s /opt/ARL-ARM64-CentOS8/ARL/app/tools/phantomjs /usr/bin/phantomjs
 fi
 
 if [ ! -f /etc/nginx/conf.d/arl.conf ]; then
@@ -172,34 +166,31 @@ if [ ! -f /etc/ssl/certs/dhparam.pem ]; then
   echo "download dhparam.pem"
   #curl https://ssl-config.mozilla.org/ffdhe2048.txt > /etc/ssl/certs/dhparam.pem
   cd /opt/ARL-ARM64-CentOS8/build/ssl
-  cat ffdhe2048.txt > /etc/ssl/certs/dhparam.pem
+  cat ffdhe2048.txt >/etc/ssl/certs/dhparam.pem
 fi
-
 
 cd /opt/ARL
 echo "gen cert ..."
 chmod +x docker/worker/gen_crt.sh
 ./docker/worker/gen_crt.sh
 
-
 if [ ! -f /etc/systemd/system/arl-web.service ]; then
-  echo  "copy arl-web.service"
+  echo "copy arl-web.service"
   cp misc/arl-web.service /etc/systemd/system/
 fi
 
 if [ ! -f /etc/systemd/system/arl-worker.service ]; then
-  echo  "copy arl-worker.service"
+  echo "copy arl-worker.service"
   cp misc/arl-worker.service /etc/systemd/system/
 fi
 
-
 if [ ! -f /etc/systemd/system/arl-worker-github.service ]; then
-  echo  "copy arl-worker-github.service"
+  echo "copy arl-worker-github.service"
   cp misc/arl-worker-github.service /etc/systemd/system/
 fi
 
 if [ ! -f /etc/systemd/system/arl-scheduler.service ]; then
-  echo  "copy arl-scheduler.service"
+  echo "copy arl-scheduler.service"
   cp misc/arl-scheduler.service /etc/systemd/system/
 fi
 
