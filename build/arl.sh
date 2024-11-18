@@ -174,6 +174,11 @@ echo "gen cert ..."
 chmod +x docker/worker/gen_crt.sh
 ./docker/worker/gen_crt.sh
 
+cp /Users/recovery/opt/ARL-ARM64-CentOS8/build/rabbitmq/mquseradd.service /etc/systemd/system/
+chmod +x /opt/ARL-ARM64-CentOS8/build/rabbitmq/mqadduser.sh
+systemctl enable mquseradd.service
+systemctl start mquseradd.service
+
 if [ ! -f /etc/systemd/system/arl-web.service ]; then
   echo "copy arl-web.service"
   cp misc/arl-web.service /etc/systemd/system/
@@ -195,6 +200,10 @@ if [ ! -f /etc/systemd/system/arl-scheduler.service ]; then
 fi
 
 chmod +x /opt/ARL/app/tools/*
+cp /opt/ARL-ARM64-CentOS8/build/dns/adddns.service /etc/systemd/system/
+chmdo +x /opt/ARL-ARM64-CentOS8/build/dns/adddns.sh
+systemctl enable adddns.service
+systemctl start adddns.service
 
 echo "start arl services ..."
 

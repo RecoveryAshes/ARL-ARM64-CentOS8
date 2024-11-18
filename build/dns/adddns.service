@@ -1,0 +1,11 @@
+[Unit]
+Description=adddns
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/ARL-ARM64-CentOS8/build/dns/adddns.sh
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
