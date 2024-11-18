@@ -13,5 +13,5 @@ name=CentOS Linux $releasever - HighAvailability
 #mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=HighAvailability&infra=$infra
 baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/HighAvailability/$basearch/os/
 gpgcheck=1
-enabled=0
+enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial

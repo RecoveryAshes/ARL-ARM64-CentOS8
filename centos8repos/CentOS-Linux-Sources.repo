@@ -4,35 +4,35 @@
 name=CentOS Stream $releasever - BaseOS - Source
 baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/BaseOS/Source/
 gpgcheck=1
-enabled=0
+enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
 [appstream-source]
 name=CentOS Stream $releasever - AppStream - Source
 baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/AppStream/Source/
 gpgcheck=1
-enabled=0
+enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
 [powertools-source]
 name=CentOS Stream $releasever - PowerTools - Source
 baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/PowerTools/Source/
 gpgcheck=1
-enabled=0
+enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
 [extras-source]
 name=CentOS Stream $releasever - Extras - Source
 baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/extras/Source/
 gpgcheck=1
-enabled=0
+enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
 [ha-source]
 name=CentOS Stream $releasever - HighAvailability - Source
 baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/HighAvailability/Source/
 gpgcheck=1
-enabled=0
+enabled=1
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
 [rt-source]
@@ -44,7 +44,7 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
 
 [resilientstorage-source]
 name=CentOS Stream $releasever - ResilientStorage - Source
-baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/ResilientStorage/Source/
+baseurl=http://mirrors.aliyun.com/centos-vault/$contentdir/8/storage/Source/
 gpgcheck=1
 enabled=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-centosofficial
