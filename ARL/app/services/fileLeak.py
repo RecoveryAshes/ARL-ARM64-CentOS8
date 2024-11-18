@@ -81,7 +81,7 @@ class HTTPReq():
             conn = utils.http_req(self.url.url, 'get', timeout=(3, 6), stream=True)
         except:
             self.status_code = 404
-            self.content = b''
+            self.content = content
         else:
             self.conn = conn
             start_time = time.time()
@@ -91,16 +91,18 @@ class HTTPReq():
                 content += data
                 if len(content) >= int(self.max_length):
                     break
+        finally:
+            if self.conn is not None: 
+                self.status_code = conn.status_code
+                self.content = content[:self.max_length]
+                content_len = self.conn.headers.get("Content-Length", len(self.content))
+                self.conn.headers["Content-Length"] = content_len
+                conn.close()
+            else:
+                self.status_code = 404
+                self.content = content
 
-        self.status_code = conn.status_code
-        self.content = content[:self.max_length]
-
-        content_len = self.conn.headers.get("Content-Length", len(self.content))
-        self.conn.headers["Content-Length"] = content_len
-
-        conn.close()
-
-        return self.status_code, self.content
+            return self.status_code, self.content
 
 
 
