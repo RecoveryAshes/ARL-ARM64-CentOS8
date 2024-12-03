@@ -13,7 +13,7 @@ class PortScan:
         self.targets = " ".join(targets)
         self.ports = ports
         self.max_host_group = 32
-        self.alive_port = "22,80,443,843,3389,8007-8011,8443,9090,8080-8091,8093,8099,5000-5004,2222,3306,1433,21,25"
+        self.alive_port = "22,80,443,843,3389,8007-8011,8443,8848,9090,8080-8091,8093,8099,5000-5004,2222,3306,1433,21,25"
         self.nmap_arguments = "-sT -n --open"
         self.max_retries = 3
         self.host_timeout = 60*5
@@ -39,7 +39,7 @@ class PortScan:
         if self.ports == "0-65535":
             self.max_host_group = 2
             self.min_rate = max(self.min_rate, 800)
-            self.parallelism = max(self.parallelism, 128)
+            self.parallelism = max(self.parallelism, 256)
 
             self.nmap_arguments += " -PE -PS{}".format(self.alive_port)
             self.host_timeout += 60 * 5

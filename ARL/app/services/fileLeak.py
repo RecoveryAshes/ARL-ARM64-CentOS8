@@ -15,7 +15,7 @@ min_length = 100
 max_length = 50*1024
 read_timeout = 60
 bool_ratio = 0.8
-concurrency_count = 6
+concurrency_count = 12
 
 class URL():
     def __init__(self, url, payload):
