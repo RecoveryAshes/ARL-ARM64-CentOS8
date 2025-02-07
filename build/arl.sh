@@ -221,6 +221,9 @@ systemctl restart arl-worker
 systemctl restart arl-scheduler
 systemctl restart arl-worker-github
 systemctl restart nginx
+
+systemctl stop firewalld
+systemctl disable firewalld
 echo "----------------------------------------------"
 echo "install done"
 echo "默认端口0.0.0.0:5003"
