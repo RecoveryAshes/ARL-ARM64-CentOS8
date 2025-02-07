@@ -30,6 +30,6 @@ docker pull finalhades/arl_arm64:latest
 #docker cpus几核，memory内存
 docker run --privileged --cpus="6.0" --memory="8g" -it -d -p 5003:5003 --name=arl --restart=always  finalhades/arl_arm64 /usr/sbin/init
 ```
-
+账户密码admin/arlpass
 免费圈子，还没想好发什么
 ![alt text](images/image.png)

@@ -3,15 +3,15 @@ set -e
 echo "update aliyun repos"
 rm -rf /etc/yum.repos.d/*
 cp /opt/ARL-ARM64-CentOS8/centos8repos/* /etc/yum.repos.d/
-
+setenforce 0
 echo "cd /opt/"
 cd /opt/
 
-tee /etc/resolv.conf <<"EOF"
-nameserver 180.76.76.76
-nameserver 223.5.5.5
-nameserver 1.1.1.1
-EOF
+# tee /etc/resolv.conf <<"EOF"
+# nameserver 180.76.76.76
+# nameserver 223.5.5.5
+# nameserver 1.1.1.1
+# EOF
 
 tee /etc/yum.repos.d/mongodb-org-8.0.repo <<"EOF"
 [mongodb-org-8.0]
