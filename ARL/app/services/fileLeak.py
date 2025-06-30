@@ -298,9 +298,6 @@ class FileLeak(BaseThread):
         self.read_timeout = read_timeout  # 使用全局读取超时配置
 
     def work(self, url):
-        if self.error_times >= 15:  # 降低错误阈值
-            logger.warning("Too many errors ({}), skipping {}".format(self.error_times, url))
-            return
             
         try:
             req = self.http_req(url)
@@ -315,8 +312,8 @@ class FileLeak(BaseThread):
 
             if page not in self.page404_set:
                 self.page200_set.add(page)
-                
-        except (ConnectionError, requests.exceptions.ConnectionError, 
+                        
+        except (ConnectionError, requests.exceptions.ConnectionError,  
                 RemoteDisconnected, 
                 urllib3.exceptions.IncompleteRead,
                 requests.exceptions.Timeout) as e:
@@ -325,7 +322,6 @@ class FileLeak(BaseThread):
         except Exception as e:
             self.error_times += 1
             logger.error("Unexpected error processing {}: {}".format(url, e))
-            # 不再抛出异常，避免整个任务失败
 
 
     def build_404_page(self):
