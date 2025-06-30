@@ -3,7 +3,7 @@
 arm64 架构的 centos8 灯塔，可用于 mac 电脑使用  centos8 虚拟机本地搭建，本地已通过测试
 
 账户密码admin/arlpass
-![1751248230803](image/README/1751248230803.png)
+![1751248230803](images/1751248230803.png)
 
 ## 修改优化
 
@@ -54,9 +54,9 @@ docker run --privileged --cpus="6.0" --memory="8g" -it -d -p 5003:5003 --name=ar
 
 ### 免费知识分享纷传圈子
 
-![1751248354292](image/README/1751248354292.png)
+![1751248354292](images/1751248354292.png)
 
 ### 博客
 
 https://blog.finalline.net/
-![1751248430207](image/README/1751248430207.png)
+![1751248430207](image/1751248430207.png)
