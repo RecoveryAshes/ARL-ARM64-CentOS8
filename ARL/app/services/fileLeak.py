@@ -2,6 +2,8 @@ import time
 import difflib
 from urllib.parse import urlparse, urljoin
 import urllib3
+import requests
+from http.client import RemoteDisconnected
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from tld import get_tld
 import itertools
@@ -13,9 +15,9 @@ logger = utils.get_logger()
 
 min_length = 100
 max_length = 50*1024
-read_timeout = 60
+read_timeout = 30  # 减少读取超时时间
 bool_ratio = 0.8
-concurrency_count = 12
+concurrency_count = 6
 
 class URL():
     def __init__(self, url, payload):
@@ -69,7 +71,7 @@ class URL():
 class HTTPReq():
     def __init__(self, url: URL , read_timeout = 60, max_length = 50*1024):
         self.url = url
-        self.read_timeout = read_timeout
+        self.read_timeout = read_timeout if read_timeout else 30
         self.max_length = max_length
         self.conn = None
         self.status_code = None
@@ -77,32 +79,60 @@ class HTTPReq():
 
     def req(self):
         content = b''
+        self.conn = None
         try:
-            conn = utils.http_req(self.url.url, 'get', timeout=(3, 6), stream=True)
-        except:
-            self.status_code = 404
-            self.content = content
-        else:
+            # 使用更短的超时时间和连接关闭头
+            conn = utils.http_req(self.url.url, 'get', 
+                                timeout=(3, 8), 
+                                stream=True,
+                                headers={'Connection': 'close'})
             self.conn = conn
             start_time = time.time()
-            for data in conn.iter_content(chunk_size=512):
+            
+            # 检查响应状态
+            if conn.status_code >= 400:
+                self.status_code = conn.status_code
+                self.content = b''
+                return self.status_code, self.content
+                
+            # 分块读取内容，使用更大的chunk_size提高效率
+            for data in conn.iter_content(chunk_size=2048):
                 if time.time() - start_time >= self.read_timeout:
+                    logger.warning("Read timeout for {}".format(self.url.url))
                     break
                 content += data
                 if len(content) >= int(self.max_length):
                     break
-        finally:
-            if self.conn is not None: 
-                self.status_code = conn.status_code
-                self.content = content[:self.max_length]
-                content_len = self.conn.headers.get("Content-Length", len(self.content))
-                self.conn.headers["Content-Length"] = content_len
-                conn.close()
-            else:
-                self.status_code = 404
-                self.content = content
 
-            return self.status_code, self.content
+            self.status_code = conn.status_code
+            self.content = content[:self.max_length]
+
+            # 更新Content-Length头
+            if hasattr(self.conn, 'headers'):
+                content_len = self.conn.headers.get("Content-Length", len(self.content))
+                self.conn.headers["Content-Length"] = str(content_len)
+
+        except (ConnectionError, requests.exceptions.ConnectionError, 
+                RemoteDisconnected, 
+                urllib3.exceptions.IncompleteRead,
+                requests.exceptions.Timeout,
+                requests.exceptions.ReadTimeout) as e:
+            # logger.warning("Network error for {}: {}".format(self.url.url, e))
+            self.status_code = 0
+            self.content = b''
+        except Exception as e:
+            logger.error("Unexpected error for {}: {}".format(self.url.url, e))
+            self.status_code = 0
+            self.content = b''
+        finally:
+            # 确保连接被正确关闭
+            if self.conn is not None:
+                try:
+                    self.conn.close()
+                except Exception:
+                    pass
+
+        return self.status_code, self.content
 
 
 
@@ -265,23 +295,37 @@ class FileLeak(BaseThread):
         self.record_page = False
         self.skip_302 = False
         self.location_404_url = set()
+        self.read_timeout = read_timeout  # 使用全局读取超时配置
 
     def work(self, url):
-        if self.error_times >= 20:
+        if self.error_times >= 15:  # 降低错误阈值
+            logger.warning("Too many errors ({}), skipping {}".format(self.error_times, url))
             return
-        req = self.http_req(url)
-        page = Page(req)
+            
+        try:
+            req = self.http_req(url)
+            page = Page(req)
 
+            if self.record_page:
+                self.page_all.append(page)
 
-        if self.record_page:
-            self.page_all.append(page)
+            if self.is_404_page(page):
+                self.page404_set.add(page)
+                return
 
-        if self.is_404_page(page):
-            self.page404_set.add(page)
-            return
-
-        if page not in self.page404_set:
-            self.page200_set.add(page)
+            if page not in self.page404_set:
+                self.page200_set.add(page)
+                
+        except (ConnectionError, requests.exceptions.ConnectionError, 
+                RemoteDisconnected, 
+                urllib3.exceptions.IncompleteRead,
+                requests.exceptions.Timeout) as e:
+            self.error_times += 1
+            logger.warning("Network error processing {}: {}".format(url, e))
+        except Exception as e:
+            self.error_times += 1
+            logger.error("Unexpected error processing {}: {}".format(url, e))
+            # 不再抛出异常，避免整个任务失败
 
 
     def build_404_page(self):
@@ -314,14 +358,28 @@ class FileLeak(BaseThread):
         return self.page200_set
 
     def http_req(self, url: URL):
-        try:
-            req = HTTPReq(url)
-            req.req()
-            return req
-        except Exception as e:
-            logger.warning("error on {}".format(e))
-            self.error_times += 1
-            raise e
+        max_retries = 2  # 减少重试次数
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                req = HTTPReq(url, read_timeout=self.read_timeout)
+                req.req()
+                return req
+            except (ConnectionError, requests.exceptions.ConnectionError, 
+                    RemoteDisconnected, 
+                    urllib3.exceptions.IncompleteRead,
+                    requests.exceptions.Timeout) as e:
+                retry_count += 1
+                if retry_count >= max_retries:
+                    logger.warning("Max retries exceeded for {}: {}".format(url, e))
+                    self.error_times += 1
+                    raise e
+                time.sleep(0.5)  # 减少重试等待时间
+            except Exception as e:
+                logger.warning("Unexpected error on {}: {}".format(url, e))
+                self.error_times += 1
+                raise e
 
     def is_404_page(self, page: Page):
         if page.status_code not in self.page200_code_list:
@@ -517,6 +575,7 @@ def file_leak(targets, dicts, gen_dict = True) -> List[Page]:
     all_gen_url = set()
     map_url = dict()
 
+    # 生成URL字典
     for site in targets:
         site = normal_url(site.strip())
         if not site:
@@ -532,19 +591,29 @@ def file_leak(targets, dicts, gen_dict = True) -> List[Page]:
     cnt = 0
     total = len(map_url)
     ret = []
+    
+    logger.info("Starting file leak detection for {} targets with {} total URLs".format(total, len(all_gen_url)))
+    
     for target in map_url:
         cnt += 1
+        logger.info("Processing target {}/{}: {} ({} URLs)".format(cnt, total, target, len(map_url[target])))
 
         try:
             f = FileLeak(target, map_url[target], concurrency_count)
             pages = f.run()
-            for page in pages:
-                logger.info("found => {}".format(page))
+            
+            if pages:
+                logger.info("Found {} potential file leaks for {}".format(len(pages), target))
+                for page in pages:
+                    logger.info("found => {}".format(page))
+            else:
+                logger.info("No file leaks found for {}".format(target))
 
             ret.extend(pages)
         except Exception as e:
-            logger.info("error on {}, {}".format(target, e))
+            logger.error("Error processing target {}: {}".format(target, e))
             logger.exception(e)
 
+    logger.info("File leak detection completed. Total findings: {}".format(len(ret)))
     return ret
 
