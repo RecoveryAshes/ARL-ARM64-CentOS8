@@ -59,4 +59,4 @@ docker run --privileged --cpus="6.0" --memory="8g" -it -d -p 5003:5003 --name=ar
 ### 博客
 
 https://blog.finalline.net/
-![1751248430207](image/1751248430207.png)
+![1751248430207](images/1751248430207.png)
